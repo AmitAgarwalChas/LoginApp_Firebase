@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">login_page_firebase</string>
+    <string name="new_account">
+         <b><u>Create an account</u></b>.
+    </string>
+    <string name="sign_in">
+         <b><u>Sign in here</u></b>.
+    </string>
+</resources>
