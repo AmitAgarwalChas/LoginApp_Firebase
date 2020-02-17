@@ -1,7 +1,9 @@
 package com.example.login_page_firebase;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
@@ -10,26 +12,33 @@ import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
+import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 public class sign_up extends AppCompatActivity {
 
     TextView signin;
-    TextInputEditText mname;
-    TextInputEditText memail;
-    TextInputEditText mpassword;
-    TextInputEditText mconfirmpass;
-    TextInputEditText mphone;
-    RadioGroup rg;
+    private TextInputEditText mname;
+    private TextInputEditText memail;
+    private TextInputEditText mpassword;
+    private TextInputEditText mconfirmpass;
+    private TextInputEditText mphone;
+    private RadioGroup rg;
     Button register;
-    private FirebaseAuth fAuth;
+    FirebaseAuth fAuth;
+    ProgressDialog pd;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sign_up);
+
+        pd = new ProgressDialog(this);
 
         mname = (TextInputEditText) findViewById(R.id.full_name);
         memail = (TextInputEditText) findViewById(R.id.signup_email);
@@ -40,7 +49,6 @@ public class sign_up extends AppCompatActivity {
         register = (Button)findViewById(R.id.signup_account);
 
         fAuth = FirebaseAuth.getInstance();
-        register.setEnabled(false);
         confirmInput();
         backToLogin();
 
@@ -54,7 +62,6 @@ public class sign_up extends AppCompatActivity {
             return false;
         }
         else{
-            mname.setError(null);
             return true;
         }
     }
@@ -66,7 +73,6 @@ public class sign_up extends AppCompatActivity {
             return false;
         }
         else{
-            memail.setError(null);
             return true;
         }
     }
@@ -86,7 +92,6 @@ public class sign_up extends AppCompatActivity {
             return false;
         }
         else{
-            mpassword.setError(null);
             return true;
         }
     }
@@ -99,7 +104,6 @@ public class sign_up extends AppCompatActivity {
             return false;
         }
         else if(confirmpass.equals(passwordInput)){
-            mconfirmpass.setError(null);
             return true;
         }
         else{
@@ -115,7 +119,6 @@ public class sign_up extends AppCompatActivity {
             return false;
         }
         else{
-            mphone.setError(null);
             return true;
         }
     }
@@ -123,6 +126,7 @@ public class sign_up extends AppCompatActivity {
     private boolean validateGender(){
         if (rg.getCheckedRadioButtonId() == -1)
         {
+
             Toast.makeText(getApplicationContext(), "Please select your Gender",Toast.LENGTH_SHORT).show();
             return false;
         }
@@ -131,14 +135,41 @@ public class sign_up extends AppCompatActivity {
             return true;
         }
     }
-    public void confirmInput(){
-        if(!validateName() | !validateEmail() | !validatePassword() |
-                !validatePhone() | !confirmPassword() | !validateGender()){
 
-        }
-        else {
-            register.setEnabled(true);
-        }
+    public void confirmInput(){
+        register.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(!validateName() | !validateEmail() | !validatePassword() |
+                        !validatePhone() | !confirmPassword() | !validateGender()){
+                    return;
+                }
+                else {
+                    String mail = memail.getText().toString().trim();
+                    String pass = mpassword.getText().toString();
+                    pd.setMessage("Registering user...");
+                    pd.show();
+                    fAuth.createUserWithEmailAndPassword(mail, pass)
+                            .addOnCompleteListener(sign_up.this, new OnCompleteListener<AuthResult>() {
+                                @Override
+                                public void onComplete(@NonNull Task<AuthResult> task) {
+                                    if(task.isSuccessful()){
+                                        Toast.makeText(sign_up.this,"User Registered Successfully.",Toast.LENGTH_SHORT).show();
+                                        startActivity(new Intent(sign_up.this,MainActivity.class));
+                                        finish();
+                                    }
+                                    else{
+                                        pd.cancel();
+                                        Toast.makeText(sign_up.this,"Registration failed!!! Try Again.",Toast.LENGTH_SHORT).show();
+                                    }
+                                }
+                            });
+
+                }
+
+            }
+        });
+
 
     }
 
